@@ -6,13 +6,14 @@ from random import sample
 import csv
 
 
-def get_links(page: str) -> list[str]:
+def get_links(page: str, depth: int, sleep_time: float, density: float) -> list[str]:
     '''
     Returns a list of links for a given Wikipedia article.
     https://www.mediawiki.org/wiki/API:Etiquette
     https://www.mediawiki.org/wiki/API:Links
     https://www.mediawiki.org/wiki/API:Linkshere
     https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions
+    https://www.mediawiki.org/wiki/API:Etiquette
     '''
 
     # Get all links for a page
@@ -24,8 +25,9 @@ def get_links(page: str) -> list[str]:
         "prop": "links"
     }
     HEADERS = {
-        "User-Agent": "WikiCrawl Visualization Bot/0.1 (charlesalexanderlee@protonmail.com) Python 3.10.4"
+        "User-Agent": f"WikiCrawl Visualization Bot (github.com/charlesalexanderlee/wikicrawl) (Threads/1 Max_Depth/{depth} Sleep/{sleep_time} Density/{density} Python/3.10.4)"
     }
+    print(HEADERS)
     RESPONSE = get(url=URL, params=PARAMS, headers=HEADERS).json()
 
     try:
@@ -57,7 +59,7 @@ def build_graph (
     '''
 
     sleep(sleep_time)
-    links = get_links(link)
+    links = get_links(page=link, depth=depth+(height-1), sleep_time=sleep_time, density=density)
     links = sample(links, int(len(links)*density))
 
     for idx, link in enumerate(links):
@@ -86,10 +88,10 @@ def build_graph (
 
 def main() -> None:
     STARTING_LINK = "Recursion"
-    DEPTH = 10
-    PATH = f"{STARTING_LINK}_{DEPTH}.csv"
+    DEPTH = 3
     SLEEP_TIME = 0.5
-    DENSITY = 0.05
+    DENSITY = 1
+    PATH = f"{STARTING_LINK}_{DEPTH}_{str(DENSITY)}.csv"
 
     # Begin recursive network graph creation
     row = build_graph(link=STARTING_LINK, depth=DEPTH, path=PATH, sleep_time=SLEEP_TIME, density=DENSITY)
@@ -104,6 +106,5 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# https://www.mediawiki.org/wiki/API:Etiquette
 # [Thread 1]: (depth_1) count/max_count | (depth_n) count/max_count | article
 # [Stats]: Nodes = node_count | Edges = edge_count | File Size = file_size | Time Elapsed = time_elapsed 
