@@ -5,7 +5,7 @@ I created this tool to experiment with web crawlers and data visualization. Give
 
 ### Usage
 
-`python3 src/wikicrawl.py -a <article_name> -d <depth> -s <sleep_time> -p <density>`
+`python src/wikicrawl.py -a <article_name> -d <depth> -s <sleep_time> -p <density>`
 
 `-a, --article` The Wikipedia article to create the adjacency list CSV file from (replace spaces in article name with underscores)
 
@@ -16,7 +16,7 @@ I created this tool to experiment with web crawlers and data visualization. Give
 `-p, --density` Percentage of links to grab from each page on a scale from 0.0-1.0. Recommended to lower density if depth is above 2 (default=1.0)
 
 ### Example
-`python wikicrawl.py --article Recursion --depth 2`
+`python src/wikicrawl.py --article Recursion --depth 2`
 
 <img src="https://i.imgur.com/2GfekPU.jpg" width=50% height=50%>
 
