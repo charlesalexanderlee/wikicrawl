@@ -1,6 +1,5 @@
 from io import TextIOWrapper
 from requests import get
-from pprint import pprint
 from time import sleep
 from random import sample
 import csv
@@ -44,14 +43,7 @@ def get_links(page: str, depth: int, sleep_time: float, density: float) -> list[
         return list()
 
 
-def build_graph (
-    link: str, 
-    depth: int, 
-    path: str,
-    height: int = 1,
-    sleep_time: float = 0.5,
-    density: float = 1.0
-) -> list[str]:
+def build_graph_helper(link: str, depth: int, path: str, height: int = 1, sleep_time: float = 0.5, density: float = 1.0) -> list[str]:
 
     '''
     Creates an adjacency list and writes it to a CSV file.
@@ -81,7 +73,7 @@ def build_graph (
 
         if depth-1 > 0:
             # Recursive graph traversal
-            row = build_graph (
+            row = build_graph_helper (
                 link=link, 
                 depth=depth-1, 
                 path=path,
@@ -99,6 +91,22 @@ def build_graph (
                 writer.writerow(row)
 
     return links
+
+
+def build_graph(link: str, depth: int, path: str, sleep_time: float = 0.5, density: float = 1.0) -> None:
+    row = build_graph_helper (
+        link=link, 
+        depth=depth, 
+        path=path,
+        sleep_time=sleep_time,
+        density=density
+    )
+
+    # Covers final edge case when we return to our initial recursive call
+    with open(path, "a", newline="", encoding="utf-8") as csv_file:
+        row.insert(0, link)
+        writer = csv.writer(csv_file, delimiter=";")
+        writer.writerow(row)
 
 
 # [Thread 1]: (depth_1) count/max_count | (depth_n) count/max_count | article

@@ -5,7 +5,7 @@ I created this tool to experiment with web crawlers and data visualization. Give
 
 ### Usage
 
-`python wikicrawl.py -a <article_name> -d <depth> -s <sleep_time> -p <density>`
+`python3 src/wikicrawl.py -a <article_name> -d <depth> -s <sleep_time> -p <density>`
 
 `-a, --article` The Wikipedia article to create the adjacency list CSV file from (replace spaces in article name with underscores)
 
