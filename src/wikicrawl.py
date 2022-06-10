@@ -11,7 +11,7 @@ def main() -> None:
     parser.add_argument("-p", "--density", default=1.0, type=float)
     args = parser.parse_args()
 
-    # Begin recursive network graph creation
+    # Creates adjacency list CSV file
     build_graph (
         link=args.article, 
         depth=int(args.depth), 

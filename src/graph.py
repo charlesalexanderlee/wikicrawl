@@ -8,10 +8,6 @@ import csv
 def get_links(page: str, depth: int, sleep_time: float, density: float) -> list[str]:
     '''
     Returns a list of links for a given Wikipedia article.
-    https://www.mediawiki.org/wiki/API:Etiquette
-    https://www.mediawiki.org/wiki/API:Links
-    https://www.mediawiki.org/wiki/API:Linkshere
-    https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions
     '''
 
     # Get all links for a page
@@ -44,7 +40,6 @@ def get_links(page: str, depth: int, sleep_time: float, density: float) -> list[
 
 
 def build_graph_helper(link: str, depth: int, path: str, height: int = 1, sleep_time: float = 0.5, density: float = 1.0) -> list[str]:
-
     '''
     Creates an adjacency list and writes it to a CSV file.
     '''
@@ -111,3 +106,7 @@ def build_graph(link: str, depth: int, path: str, sleep_time: float = 0.5, densi
 
 # [Thread 1]: (depth_1) count/max_count | (depth_n) count/max_count | article
 # [Stats]: Nodes = node_count | Edges = edge_count | File Size = file_size | Time Elapsed = time_elapsed
+# https://www.mediawiki.org/wiki/API:Etiquette
+# https://www.mediawiki.org/wiki/API:Links
+# https://www.mediawiki.org/wiki/API:Linkshere
+# https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions
