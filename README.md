@@ -4,10 +4,10 @@
 I created this tool to experiment with web crawlers and data visualization. Given a Wikipedia article and a depth, it recursively traverses each link and outputs an adjacency list CSV file.
 
 ### Usage
-
 ```
 python src/wikicrawl.py -a <article_name> -d <depth> -s <sleep_time> -p <density>
 ```
+**Note: Please use Python 3.10 or higher**
 
 `-a, --article` The Wikipedia article to create the adjacency list CSV file from (replace spaces in article name with underscores)
 
