@@ -15,7 +15,7 @@ python src/wikicrawl.py -a <article_name> -d <depth> -s <sleep_time> -p <density
 
 `-s, --sleep` Sleep time in seconds to wait between each API call (default=0.5)
 
-`-p, --density` Percentage of links to grab from each page on a scale from 0.0-1.0. It is recommended to lower the density if the depth is above 2 (default=1.0)
+`-p, --density` Grabs a specified percentage of randomly chosen links from each page on a scale from 0.0-1.0. It is recommended to lower the density if the depth is above 2 (default=1.0)
 
 ### Example
 ```
@@ -26,5 +26,5 @@ Outputs an adjacency list CSV file titled "Simulacra_and_Simulation_2_1.0.csv" (
 
 <img src="https://i.imgur.com/oBYU8Wp.jpg" width=50% height=50%>
 
-*Network graph visualization of [Simulacra and Simulation](https://en.wikipedia.org/wiki/Simulacra_and_Simulation) imported in Gephi*
+*Network graph visualization of [Simulacra and Simulation](https://en.wikipedia.org/wiki/Simulacra_and_Simulation) imported in [Gephi](https://gephi.org/)*
 
