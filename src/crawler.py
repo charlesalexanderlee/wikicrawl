@@ -1,7 +1,6 @@
 from requests import get
 from time import sleep
 from random import sample
-import threading
 import csv
 
 
@@ -28,7 +27,6 @@ class WikiCrawl:
         Returns a list of links for a given Wikipedia article.
         '''
 
-        # Get all links for a page
         URL = "https://en.wikipedia.org/w/api.php"
         PARAMS = {
             "action": "parse",
@@ -37,9 +35,15 @@ class WikiCrawl:
             "prop": "links"
         }
         HEADERS = {
-            "User-Agent": f"WikiCrawl Visualization Bot (github.com/charlesalexanderlee/wikicrawl) (Threads/1 Max_Depth/{self.depth} Sleep/{self.sleep_time}s Density/{self.density*100}% Python/3.10.4)"
+            "User-Agent": f"WikiCrawl Bot (github.com/charlesalexanderlee/wikicrawl)",
+            "Parameters": {
+                "Root-Article": self.page,
+                "Thread-Count": 1,
+                "Sleep-Time-(s)": self.time,
+                "Density": self.density*100,
+                "Python-Version": "3.10.4"
+            }
         }
-
         RESPONSE = get(url=URL, params=PARAMS, headers=HEADERS).json()
 
         try:
@@ -69,12 +73,12 @@ class WikiCrawl:
 
     def crawl(
         self,
-        links: list[str], 
-        depth: int, 
+        links: list[str],
         path: str, 
-        height: int = 1, 
-        sleep_time: float = 0.5, 
-        density: float = 1.0) -> list[str]:
+        depth: int, 
+        density: float = 1.0,
+        sleep_time: float = 0.5,
+        height: int = 1) -> list[str]:
         '''
         Creates an adjacency list and writes it to a CSV file.
         '''
@@ -93,12 +97,12 @@ class WikiCrawl:
             if depth-1 > 0:
                 # Recursive graph traversal
                 row = self.crawl(
-                    links=self.get_links(page=link), 
+                    links=self.get_links(page=link),
+                    path=path, 
                     depth=depth-1, 
-                    path=path,
-                    height=height+1,
+                    density=density,
                     sleep_time=sleep_time,
-                    density=density
+                    height=height+1,
                 )
                 
                 # Inserting parent article to beginning of list followed by it's links
@@ -117,18 +121,18 @@ class WikiCrawl:
         links = self.get_links(page=self.page)
         
         # Grab a sample of the links specified by density
-        links = sample(population=links, k=int(len(links)*self.density))
+        links = sample(population=links, k=int(self.density*len(links)))
         
         # Split links into n lists for multi-threading
         links = self.split_links(links=links, n=self.thread_count)
 
         # Start the crawler
         row = self.crawl(
-            links=links, 
-            path=self.path,
-            depth=self.depth, 
-            density=self.density,
-            sleep_time=self.sleep_time
+            links = links, 
+            path = self.path,
+            depth = self.depth, 
+            density = self.density,
+            sleep_time = self.sleep_time
         )
 
         # Covers final edge case when we return to our initial recursive call
