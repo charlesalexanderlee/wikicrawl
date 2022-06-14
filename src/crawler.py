@@ -1,8 +1,8 @@
+from threads import ThreadHandler
 from requests import get
 from time import sleep
 from random import sample
-import csv
-
+import json
 
 class WikiCrawl:
     def __init__(
@@ -20,6 +20,7 @@ class WikiCrawl:
         self.density = density
         self.sleep_time = sleep_time
         self.thread_count = thread_count
+        self.thread_handler = ThreadHandler()
 
 
     def get_links(self, page: str) -> list[str]:
@@ -36,13 +37,13 @@ class WikiCrawl:
         }
         HEADERS = {
             "User-Agent": f"WikiCrawl Bot (github.com/charlesalexanderlee/wikicrawl)",
-            "Parameters": {
+            "Parameters": json.dumps({
                 "Root-Article": self.page,
                 "Thread-Count": 1,
-                "Sleep-Time-(s)": self.time,
+                "Sleep-Time-(s)": self.sleep_time,
                 "Density": self.density*100,
                 "Python-Version": "3.10.4"
-            }
+            })
         }
         RESPONSE = get(url=URL, params=PARAMS, headers=HEADERS).json()
 
@@ -61,20 +62,20 @@ class WikiCrawl:
             return list()
 
 
-    def split_links(self, links: list[str], n=1) -> list[list[str]]:
+    def split_list(self, array: list[str], n=1) -> list[list[str]]:
         '''
         Returns a list split into n lists.
         '''
         return [
-            links[i*len(links)//n : (i+1)*len(links)//n] 
+            array[i*len(array)//n : (i+1)*len(array)//n] 
             for i in range(n)
         ]
 
 
     def crawl(
         self,
+        thread_num: int,
         links: list[str],
-        path: str, 
         depth: int, 
         density: float = 1.0,
         sleep_time: float = 0.5,
@@ -90,28 +91,28 @@ class WikiCrawl:
         links = sample(population=links, k=int(len(links)*density))
         
         # Enumerate through each link and recursively visit it
-        for idx, link in enumerate(links):
+        for link in links:
             # Prints current state of traversal
-            print("  "*height, f"- [{idx+1}/{len(links)}] ({height}) {link}")
+            # print("  "*height, f"- [{idx}/{len(links)}] ({height}) {link}")
+            print(f"[Thread {thread_num}] {link}")
 
             if depth-1 > 0:
-                # Recursive graph traversal
+                # Recursive graph traversal, returns a list starting with parent followed by its links
                 row = self.crawl(
+                    thread_num=thread_num,
                     links=self.get_links(page=link),
-                    path=path, 
                     depth=depth-1, 
                     density=density,
                     sleep_time=sleep_time,
                     height=height+1,
                 )
-                
-                # Inserting parent article to beginning of list followed by it's links
+
+                # Append parent to beginning of list
                 row.insert(0, link)
 
-                # Appends the row to the CSV file
-                with open(path, "a", newline="", encoding="utf-8") as csv_file:
-                    writer = csv.writer(csv_file, delimiter=";")
-                    writer.writerow(row)
+                # print(row)
+                # print("--putting to queue")
+                self.thread_handler.queue.put(row)
 
         return links
 
@@ -124,27 +125,16 @@ class WikiCrawl:
         links = sample(population=links, k=int(self.density*len(links)))
         
         # Split links into n lists for multi-threading
-        links = self.split_links(links=links, n=self.thread_count)
+        split_links = self.split_list(array=links, n=self.thread_count)
 
-        # Start the crawler
-        row = self.crawl(
-            links = links, 
-            path = self.path,
-            depth = self.depth, 
-            density = self.density,
-            sleep_time = self.sleep_time
-        )
+        for thread_num, links in enumerate(split_links):
+            self.thread_handler.create_thread(
+                thread_num=thread_num,
+                target=self.crawl,
+                links=links,
+                depth=self.depth,
+                density=self.density,
+                sleep_time=self.sleep_time
+            )
 
-        # Covers final edge case when we return to our initial recursive call
-        with open(self.path, "a", newline="", encoding="utf-8") as csv_file:
-            row.insert(0, self.page)
-            writer = csv.writer(csv_file, delimiter=";")
-            writer.writerow(row)
-
-
-# [Thread 1]: (depth_1) count/max_count | (depth_n) count/max_count | article
-# [Stats]: Nodes = node_count | Edges = edge_count | File Size = file_size | Time Elapsed = time_elapsed
-# https://www.mediawiki.org/wiki/API:Etiquette
-# https://www.mediawiki.org/wiki/API:Links
-# https://www.mediawiki.org/wiki/API:Linkshere
-# https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions
+        self.thread_handler.start_threads(path=self.path)

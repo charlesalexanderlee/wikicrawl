@@ -2,12 +2,12 @@ from crawler import WikiCrawl
 import argparse
 
 
-def get_arguments() -> argparse.ArgumentParser:
+def get_arguments() -> argparse.Namespace:
     # Parse the command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--article", type=str)
     parser.add_argument("-d", "--depth", default=2, type=int)
-    parser.add_argument("-s", "--sleep", default=0.5, type=float)
+    parser.add_argument("-s", "--sleep", default=5, type=float)
     parser.add_argument("-p", "--density", default=1.0, type=float)
     parser.add_argument("-t", "--threads", default=10, type=int)
     
@@ -28,7 +28,7 @@ def main() -> None:
         thread_count=int(args.threads)
     )
 
-    # Start the crawling process and save an adjacency list to CSV file
+    # Start crawling and export adjacency list to CSV file
     wc.start_crawler()
 
 
