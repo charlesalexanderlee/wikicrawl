@@ -1,35 +1,39 @@
 import threading
 import csv
 from queue import Queue
+from sys import exit
 
 class ThreadHandler:
-    def __init__(self):
+    def __init__(self, path: str):
         self.queue = Queue()
         self.threads = list()
+        self.path = path
 
 
-    def start_threads(self, path):
-        for idx, thread in enumerate(self.threads):
-            print(f"Starting thread {idx}")
+    def start_threads(self):
+        print("[STARTING THREADS]")
+        for thread in self.threads:
             thread.start()
         
-        print("--STARTING QUEUE")
-        while threading.activeCount() > 0 or not self.queue.empty():
-            with open(path, "a", newline="", encoding="utf-8") as csv_file:
+        print("[STARTING QUEUE]")
+        while threading.active_count() > 1 or not self.queue.empty():
+            with open(self.path, "a", newline="", encoding="utf-8") as csv_file:
                 try:
-                    # print("--getting from queue")
-                    row = self.queue.get(timeout=1)
-                    # print(row)
-                    # print("--writing")
+                    row = self.queue.get(timeout=60)
                     writer = csv.writer(csv_file, delimiter=";")
                     writer.writerow(row)
                 except Exception as e:
-                    print("EXCEPTION:", e)
-        print("--QUEUE FINISHED")
+                    print("EXCEPTION:", e.__repr__())
+                    print(self.threads[0].join())
+                    break
+                    
+        print("[QUEUE FINISHED]")
+        print(threading.active_count())
+        res = self.queue.get(timeout=1)
+        print(res)
 
-
-    def create_thread(self, target, links, depth, density, sleep_time, thread_num):
-        new_thread = threading.Thread(target=target, args=(thread_num, links, depth, density, sleep_time, 1))
+    def create_crawler_thread(self, target, links: list[str], depth: int, density: float, sleep_time: float):
+        new_thread = threading.Thread(target=target, args=(links, depth, density, sleep_time, 1,))
         self.threads.append(new_thread)
     
 

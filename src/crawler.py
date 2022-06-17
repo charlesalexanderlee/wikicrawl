@@ -20,7 +20,7 @@ class WikiCrawl:
         self.density = density
         self.sleep_time = sleep_time
         self.thread_count = thread_count
-        self.thread_handler = ThreadHandler()
+        self.thread_handler = ThreadHandler(path=path)
 
 
     def get_links(self, page: str) -> list[str]:
@@ -62,19 +62,8 @@ class WikiCrawl:
             return list()
 
 
-    def split_list(self, array: list[str], n=1) -> list[list[str]]:
-        '''
-        Returns a list split into n lists.
-        '''
-        return [
-            array[i*len(array)//n : (i+1)*len(array)//n] 
-            for i in range(n)
-        ]
-
-
     def crawl(
         self,
-        thread_num: int,
         links: list[str],
         depth: int, 
         density: float = 1.0,
@@ -88,18 +77,16 @@ class WikiCrawl:
         sleep(sleep_time)
             
         # Grabs a certain percentage of random links from each page (specified by density parameter)  
-        links = sample(population=links, k=int(len(links)*density))
+        links = sample(population=links, k=int(density*len(links)))
         
         # Enumerate through each link and recursively visit it
-        for link in links:
-            # Prints current state of traversal
-            # print("  "*height, f"- [{idx}/{len(links)}] ({height}) {link}")
-            print(f"[Thread {thread_num}] {link}")
+        for idx, link in enumerate(links, start=1):
+            # Prints current state of the traversal
+            print("  "*height, f"- [{idx}/{len(links)}] ({height}) {link}")
 
             if depth-1 > 0:
                 # Recursive graph traversal, returns a list starting with parent followed by its links
                 row = self.crawl(
-                    thread_num=thread_num,
                     links=self.get_links(page=link),
                     depth=depth-1, 
                     density=density,
@@ -110,8 +97,7 @@ class WikiCrawl:
                 # Append parent to beginning of list
                 row.insert(0, link)
 
-                # print(row)
-                # print("--putting to queue")
+                # Add row to the queue for writer thread to handle
                 self.thread_handler.queue.put(row)
 
         return links
@@ -122,19 +108,16 @@ class WikiCrawl:
         links = self.get_links(page=self.page)
         
         # Grab a sample of the links specified by density
-        links = sample(population=links, k=int(self.density*len(links)))
-        
-        # Split links into n lists for multi-threading
-        split_links = self.split_list(array=links, n=self.thread_count)
+        links = sample(population=links, k=int(self.density*len(links)) )
 
-        for thread_num, links in enumerate(split_links):
-            self.thread_handler.create_thread(
-                thread_num=thread_num,
-                target=self.crawl,
-                links=links,
-                depth=self.depth,
-                density=self.density,
-                sleep_time=self.sleep_time
-            )
+        # Create the thread for web crawling
+        print("[CREATING CRAWLER THREAD]")
+        self.thread_handler.create_crawler_thread(
+            target=self.crawl,
+            links=links,
+            depth=self.depth,
+            density=self.density,
+            sleep_time=self.sleep_time
+        )
 
-        self.thread_handler.start_threads(path=self.path)
+        self.thread_handler.start_threads()
