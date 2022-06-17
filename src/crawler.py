@@ -122,9 +122,6 @@ class WikiCrawl:
         
         # Grab a sample of the links specified by density
         links = sample(population=links, k=int(self.density*len(links)))
-        
-        # Split links into n lists for multi-threading
-        links = self.split_links(links=links, n=self.thread_count)
 
         # Start the crawler
         row = self.crawl(
