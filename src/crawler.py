@@ -1,6 +1,7 @@
 from requests import get
 from time import sleep
 from random import sample
+from json import dumps
 import csv
 
 
@@ -36,13 +37,13 @@ class WikiCrawl:
         }
         HEADERS = {
             "User-Agent": f"WikiCrawl Bot (github.com/charlesalexanderlee/wikicrawl)",
-            "Parameters": {
+            "Parameters": dumps({
                 "Root-Article": self.page,
                 "Thread-Count": 1,
-                "Sleep-Time-(s)": self.time,
+                "Sleep-Time-(s)": self.sleep_time,
                 "Density": self.density*100,
                 "Python-Version": "3.10.4"
-            }
+            })
         }
         RESPONSE = get(url=URL, params=PARAMS, headers=HEADERS).json()
 
