@@ -12,16 +12,13 @@ class WikiCrawl:
         path: str,
         depth: int = 2,
         density: float = 1.0,
-        sleep_time: float = 0.5,
-        thread_count: int = 10
+        sleep_time: float = 0.5
     ):
         self.page = page
         self.path = path
         self.depth = depth
         self.density = density
         self.sleep_time = sleep_time
-        self.thread_count = thread_count
-
 
     def get_links(self, page: str) -> list[str]:
         '''
@@ -61,17 +58,6 @@ class WikiCrawl:
             # Returns empty list if Wikipedia page does not exist
             return list()
 
-
-    def split_links(self, links: list[str], n=1) -> list[list[str]]:
-        '''
-        Returns a list split into n lists.
-        '''
-        return [
-            links[i*len(links)//n : (i+1)*len(links)//n] 
-            for i in range(n)
-        ]
-
-
     def crawl(
         self,
         links: list[str],
@@ -80,6 +66,7 @@ class WikiCrawl:
         density: float = 1.0,
         sleep_time: float = 0.5,
         height: int = 1) -> list[str]:
+
         '''
         Creates an adjacency list and writes it to a CSV file.
         '''
@@ -138,11 +125,3 @@ class WikiCrawl:
             row.insert(0, self.page)
             writer = csv.writer(csv_file, delimiter=";")
             writer.writerow(row)
-
-
-# [Thread 1]: (depth_1) count/max_count | (depth_n) count/max_count | article
-# [Stats]: Nodes = node_count | Edges = edge_count | File Size = file_size | Time Elapsed = time_elapsed
-# https://www.mediawiki.org/wiki/API:Etiquette
-# https://www.mediawiki.org/wiki/API:Links
-# https://www.mediawiki.org/wiki/API:Linkshere
-# https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions

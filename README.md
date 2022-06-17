@@ -13,7 +13,7 @@ python src/wikicrawl.py -a <article_name> -d <depth> -s <sleep_time> -p <density
 
 `-d, --depth` Maximum depth to explore links. It is recommended to stay below a depth of 3 (default=2)
 
-`-s, --sleep` Sleep time in seconds to wait between each API call (default=0.5)
+`-s, --sleep` Sleep time in seconds to wait between each API call (default=0.05)
 
 `-p, --density` Grabs a specified percentage of randomly chosen links from each page on a scale from 0.0-1.0. It is recommended to lower the density if the depth is above 2 (default=1.0)
 
