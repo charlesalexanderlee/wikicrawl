@@ -1,7 +1,6 @@
 import threading
 import csv
 from queue import Queue, Empty
-from time import sleep
 
 class ThreadHandler:
     def __init__(self):
@@ -11,24 +10,19 @@ class ThreadHandler:
 
     def writer(self, path: str):
         print("[WRITER THREAD STARTED]")
-        sleep(5)
-        try:
-            with open(path, "a", newline="", encoding="utf-8") as csv_file:
-                writer = csv.writer(csv_file, delimiter=";")
+        with open(path, "a", newline="", encoding="utf-8") as csv_file:
+            writer = csv.writer(csv_file, delimiter=";")
 
-                while True:
-                    try:
-                        row = self._queue.get(timeout=5)
-                        writer.writerow(row)
-                        print(row[0])
-                    except Empty as err:
-                        break
-                    except Exception as err:
-                        print(err.__repr__())
-                    
-
-        except Exception as err:
-            print(err.__repr__())        
+            while True:
+                try:
+                    row = self._queue.get(timeout=5)
+                    writer.writerow(row)
+                    # print(row[0])
+                except Empty:
+                    print("[WRITER THREAD FINISHED]")
+                    break
+                except Exception as err:
+                    print(err.__repr__()) 
 
     def start_writer_thread(self, path: str):
         print("[STARTING WRITER THREAD]")

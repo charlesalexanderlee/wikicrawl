@@ -83,7 +83,7 @@ class WikiCrawl:
         # Enumerate through each link and recursively visit it
         for idx, link in enumerate(links, start=1):
             # Prints current state of the traversal
-            # print("  "*height, f"- [{idx}/{len(links)}] ({height}) {link}")
+            print("  "*height, f"- [{idx}/{len(links)}] ({height}) {link}")
 
             if depth-1 > 0:
                 # Recursive graph traversal, returns a list starting with parent followed by its links
@@ -114,6 +114,7 @@ class WikiCrawl:
         # Start writer thread
         self.thread_handler.start_writer_thread(path=self.path)
 
+        # Begin crawling, returns a list of links of parent article
         row = self.crawl(
             links=links,
             depth=self.depth,
@@ -121,7 +122,9 @@ class WikiCrawl:
             sleep_time=self.sleep_time,
             height=1
         )
+        
+        # Appending parent article to our returned list of links
         row.insert(0, self.page)
-        self.thread_handler._queue.put(row)
 
-        exit(0)
+        # Write the parent row to the file
+        self.thread_handler._queue.put(row)
