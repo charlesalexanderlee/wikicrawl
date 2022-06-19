@@ -2,7 +2,7 @@ from threads import ThreadHandler
 from requests import get
 from time import sleep
 from random import sample
-from sys import exit
+from platform import python_version
 import json
 
 class WikiCrawl:
@@ -40,10 +40,9 @@ class WikiCrawl:
             "User-Agent": f"WikiCrawl Bot (github.com/charlesalexanderlee/wikicrawl)",
             "Parameters": json.dumps({
                 "Root-Article": self.page,
-                "Thread-Count": 1,
                 "Sleep-Time-(s)": self.sleep_time,
                 "Density": self.density*100,
-                "Python-Version": "3.10.4"
+                "Python-Version": python_version()
             })
         }
         RESPONSE = get(url=URL, params=PARAMS, headers=HEADERS).json()
@@ -86,7 +85,7 @@ class WikiCrawl:
             print("  "*height, f"- [{idx}/{len(links)}] ({height}) {link}")
 
             if depth-1 > 0:
-                # Recursive graph traversal, returns a list starting with parent followed by its links
+                # Recursive call, returns a list of links of parent article
                 row = self.crawl(
                     links=self.get_links(page=link),
                     depth=depth-1, 
@@ -95,11 +94,11 @@ class WikiCrawl:
                     height=height+1
                 )
 
-                # Append parent to beginning of list
+                # Append parent to returned list of links
                 row.insert(0, link)
 
                 # Add row to the queue for writer thread to handle
-                self.thread_handler._queue.put(row)
+                self.thread_handler.q.put(row)
 
         return links
 
@@ -114,7 +113,7 @@ class WikiCrawl:
         # Start writer thread
         self.thread_handler.start_writer_thread(path=self.path)
 
-        # Begin crawling, returns a list of links of parent article
+        # Begin recursive crawling, returns a list of links of parent article
         row = self.crawl(
             links=links,
             depth=self.depth,
@@ -123,8 +122,8 @@ class WikiCrawl:
             height=1
         )
         
-        # Appending parent article to our returned list of links
+        # Appending parent article to returned list of links
         row.insert(0, self.page)
 
-        # Write the parent row to the file
-        self.thread_handler._queue.put(row)
+        # Add row to the queue for writer thread to handle
+        self.thread_handler.q.put(row)
