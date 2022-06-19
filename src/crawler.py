@@ -2,6 +2,7 @@ from threads import ThreadHandler
 from requests import get
 from time import sleep
 from random import sample
+from sys import exit
 import json
 
 class WikiCrawl:
@@ -20,7 +21,7 @@ class WikiCrawl:
         self.density = density
         self.sleep_time = sleep_time
         self.thread_count = thread_count
-        self.thread_handler = ThreadHandler(path=path)
+        self.thread_handler = ThreadHandler()
 
 
     def get_links(self, page: str) -> list[str]:
@@ -82,7 +83,7 @@ class WikiCrawl:
         # Enumerate through each link and recursively visit it
         for idx, link in enumerate(links, start=1):
             # Prints current state of the traversal
-            print("  "*height, f"- [{idx}/{len(links)}] ({height}) {link}")
+            # print("  "*height, f"- [{idx}/{len(links)}] ({height}) {link}")
 
             if depth-1 > 0:
                 # Recursive graph traversal, returns a list starting with parent followed by its links
@@ -91,14 +92,14 @@ class WikiCrawl:
                     depth=depth-1, 
                     density=density,
                     sleep_time=sleep_time,
-                    height=height+1,
+                    height=height+1
                 )
 
                 # Append parent to beginning of list
                 row.insert(0, link)
 
                 # Add row to the queue for writer thread to handle
-                self.thread_handler.queue.put(row)
+                self.thread_handler._queue.put(row)
 
         return links
 
@@ -108,16 +109,19 @@ class WikiCrawl:
         links = self.get_links(page=self.page)
         
         # Grab a sample of the links specified by density
-        links = sample(population=links, k=int(self.density*len(links)) )
+        links = sample(population=links, k=int(self.density*len(links)))
+        
+        # Start writer thread
+        self.thread_handler.start_writer_thread(path=self.path)
 
-        # Create the thread for web crawling
-        print("[CREATING CRAWLER THREAD]")
-        self.thread_handler.create_crawler_thread(
-            target=self.crawl,
+        row = self.crawl(
             links=links,
             depth=self.depth,
             density=self.density,
-            sleep_time=self.sleep_time
+            sleep_time=self.sleep_time,
+            height=1
         )
+        row.insert(0, self.page)
+        self.thread_handler._queue.put(row)
 
-        self.thread_handler.start_threads()
+        exit(0)
