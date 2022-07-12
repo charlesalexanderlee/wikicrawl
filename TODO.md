@@ -5,6 +5,7 @@
     (d) Specify URL instead of article name (-u)
     (e) Find paths between two different articles (-a1 -a2, -u1 -u2)
     (f) Specify CSV delimiter (default=,)
+    (g) BFS or DFS traversal type (-bfs, --breadthsearch, -dfs, --depthsearch, default=bfs)
 2. Error handling:
     (a) Verify input article exists
     (b) Rate limits
