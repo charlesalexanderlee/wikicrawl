@@ -10,7 +10,7 @@ def get_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--article", type=str)
     parser.add_argument("-d", "--depth", type=int, default=2)
-    parser.add_argument("-s", "--sleep", type=float, default=0.05)
+    parser.add_argument("-s", "--sleep", type=float, default=0.5)
     parser.add_argument("-p", "--density", type=float, default=1.0)
 
     return parser.parse_args()

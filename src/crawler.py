@@ -20,43 +20,87 @@ class WikiCrawl:
         self.density = density
         self.sleep_time = sleep_time
 
-    def get_links(self, page: str) -> list[str]:
+    def get_links(self, page: str, prop: str, sleep_time: float = 0.5) -> list[str]:
+    
         '''
-        Returns a list of links for a given Wikipedia article.
+        Returns a list of links that point out of or into a Wikipedia page.
+        The `prop` parameter specifies whether to grab `links` or `linkshere`
         '''
+
+        sleep(sleep_time)
+
+        limit_type = str()
+        namespace_type = str()
+        continue_type = str()
+        continue_value = str()
+        links = list()
+        
+        if prop == "links":
+            limit_type = "pllimit"
+            namespace_type = "plnamespace"
+            continue_type = "plcontinue"
+        elif prop == "linkshere":
+            limit_type = "lhlimit"
+            namespace_type = "lhnamespace"
+            continue_type = "lhcontinue"
 
         URL = "https://en.wikipedia.org/w/api.php"
         PARAMS = {
-            "action": "parse",
+            "action": "query",
             "format": "json",
-            "page": page,
-            "prop": "links"
+            "prop": prop,
+            "titles": page,
+            limit_type: 500,
+            namespace_type: 0
         }
         HEADERS = {
-            "User-Agent": f"WikiCrawl Bot (github.com/charlesalexanderlee/wikicrawl)",
-            "Parameters": dumps({
-                "Root-Article": self.page,
-                "Thread-Count": 1,
-                "Sleep-Time-(s)": self.sleep_time,
-                "Density": self.density*100,
-                "Python-Version": "3.10.4"
-            })
+            "User-Agent": f"WikiCrawl Bot (simulacrasimulation@protonmail.com)"
         }
         RESPONSE = get(url=URL, params=PARAMS, headers=HEADERS).json()
 
         try:
-            # Filter for links that are articles
-            DATA = RESPONSE["parse"]["links"]
+            # Check if we need to continue making requests
+            if list(RESPONSE.keys())[0] == "continue":
+                continue_value = RESPONSE["continue"][continue_type]
+
+            PAGE_ID = str(list(RESPONSE["query"]["pages"].keys())[0])
+            LINKS = RESPONSE["query"]["pages"][PAGE_ID][prop]
+
+            for LINK in LINKS:
+                if "identifier" not in LINK["title"]:
+                    links.append(LINK["title"].replace(" ", "_"))
+
+            # Make next request if there are more links to grab
+            while list(RESPONSE.keys())[0] != "batchcomplete":
+                sleep(sleep_time)
+                
+                PARAMS = {
+                    "action": "query",
+                    "format": "json",
+                    "prop": prop,
+                    "titles": page,
+                    limit_type: 500,
+                    namespace_type: 0,
+                    continue_type: continue_value
+                }
+                RESPONSE = get(url=URL, params=PARAMS, headers=HEADERS).json()
+
+                if list(RESPONSE.keys())[0] == "continue":
+                    continue_value = RESPONSE["continue"][continue_type]
+
+                LINKS = RESPONSE["query"]["pages"][PAGE_ID][prop]
+
+                for LINK in LINKS:
+                    if "identifier" not in LINK["title"]:
+                        links.append(LINK["title"].replace(" ", "_"))
             
-            links = list()
-            for LINK in DATA:
-                if LINK["ns"] == 0:
-                    links.append(LINK["*"].replace(" ", "_"))
             return links
 
         except KeyError:
             # Returns empty list if Wikipedia page does not exist
+            print(f"[*] [{prop}] {page} returned no links")
             return list()
+
 
     def crawl(
         self,
@@ -85,7 +129,7 @@ class WikiCrawl:
             if depth-1 > 0:
                 # Recursive graph traversal
                 row = self.crawl(
-                    links=self.get_links(page=link),
+                    links=self.get_links(page=link, prop="links", sleep_time=sleep_time),
                     path=path, 
                     depth=depth-1, 
                     density=density,
@@ -106,7 +150,7 @@ class WikiCrawl:
 
     def start_crawler(self):
         # Get links for the input article
-        links = self.get_links(page=self.page)
+        links = self.get_links(page=self.page, prop="links", sleep_time=self.sleep_time)
         
         # Grab a sample of the links specified by density
         links = sample(population=links, k=int(self.density*len(links)))
